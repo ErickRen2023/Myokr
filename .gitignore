@@ -1,0 +1,58 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment & config
+.env
+*.env.local
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build / packaging
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Docker
+.dockerignore
+
+# Alembic (migrations)
+alembic/versions/*.pyc
+
+# Testing / coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Logs
+*.log
+
+# Archives / backups
+*.tar
+*.tar.gz
+*.zip
+
+# Jupyter notebooks
+.ipynb_checkpoints/
