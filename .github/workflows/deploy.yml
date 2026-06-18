@@ -47,4 +47,5 @@ jobs:
             docker stop server || true
             docker rm server || true
             docker run --name server --network nginx-net -d \
+              --env-file /opt/myokr/.env \
               ghcr.io/erickren2023/myokr-server:latest
