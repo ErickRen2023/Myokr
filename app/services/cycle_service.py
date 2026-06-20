@@ -1,3 +1,4 @@
+import calendar
 from typing import Optional
 from datetime import date
 
@@ -37,6 +38,56 @@ class CycleService:
             return f"{year}年"
         return ""
 
+    @staticmethod
+    def _validate_cycle_boundaries(cycle_type: int, start_date: date, end_date: date) -> None:
+        if start_date.day != 1:
+            raise ValueError("周期开始日期必须是该月的第一天")
+
+        if cycle_type == 1:  # Monthly
+            _, last_day = calendar.monthrange(start_date.year, start_date.month)
+            expected_end = date(start_date.year, start_date.month, last_day)
+            if end_date != expected_end:
+                raise ValueError(f"月度周期的结束日期必须与该月最后一天一致 (应为 {expected_end})")
+
+        elif cycle_type == 2:  # Bimonthly
+            end_month = start_date.month + 1
+            end_year = start_date.year
+            if end_month > 12:
+                end_month = 1
+                end_year += 1
+            _, last_day = calendar.monthrange(end_year, end_month)
+            expected_end = date(end_year, end_month, last_day)
+            if end_date != expected_end:
+                raise ValueError(f"双月度周期的结束日期必须为第二个月的最后一天 (应为 {expected_end})")
+
+        elif cycle_type == 3:  # Quarterly
+            if start_date.month not in (1, 4, 7, 10):
+                raise ValueError("季度周期的开始日期必须是 1 月、4 月、7 月或 10 月的第一天")
+            q_end_month = {1: 3, 4: 6, 7: 9, 10: 12}[start_date.month]
+            _, last_day = calendar.monthrange(start_date.year, q_end_month)
+            expected_end = date(start_date.year, q_end_month, last_day)
+            if end_date != expected_end:
+                raise ValueError(f"季度周期的结束日期必须为该季度的最后一天 (应为 {expected_end})")
+
+        elif cycle_type == 4:  # Half-year
+            if start_date.month not in (1, 7):
+                raise ValueError("半年度周期的开始日期必须是 1 月或 7 月的第一天")
+            end_month = 6 if start_date.month == 1 else 12
+            _, last_day = calendar.monthrange(start_date.year, end_month)
+            expected_end = date(start_date.year, end_month, last_day)
+            if end_date != expected_end:
+                raise ValueError(f"半年度周期的结束日期必须为该半年的最后一天 (应为 {expected_end})")
+
+        elif cycle_type == 5:  # Yearly
+            if start_date.month != 1:
+                raise ValueError("年度周期的开始日期必须是 1 月 1 日")
+            expected_end = date(start_date.year, 12, 31)
+            if end_date != expected_end:
+                raise ValueError(f"年度周期的结束日期必须是 12 月 31 日 (应为 {expected_end})")
+
+        else:
+            raise ValueError(f"无效的周期类型: {cycle_type}")
+
     async def get_cycles(self, user_id: int, status: Optional[int] = 0) -> list[dict]:
         conditions = [Cycle.user_id == user_id]
         if status is not None:
@@ -59,6 +110,7 @@ class CycleService:
     async def create_cycle(self, user_id: int, cycle_type: int, start_date_str: str, end_date_str: str) -> dict:
         start_date = date.fromisoformat(start_date_str)
         end_date = date.fromisoformat(end_date_str)
+        self._validate_cycle_boundaries(cycle_type, start_date, end_date)
         name = self._generate_name(cycle_type, start_date)
         cycle = Cycle(user_id=user_id, name=name, type=cycle_type, start_date=start_date, end_date=end_date)
         self.db.add(cycle)
@@ -75,6 +127,7 @@ class CycleService:
             cycle.end_date = date.fromisoformat(end_date_str)
         if cycle_type:
             cycle.type = cycle_type
+        self._validate_cycle_boundaries(cycle.type, cycle.start_date, cycle.end_date)
         cycle.name = self._generate_name(cycle.type, cycle.start_date)
         await self.db.flush()
         return cycle.to_dict()
