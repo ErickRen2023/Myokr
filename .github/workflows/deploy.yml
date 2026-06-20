@@ -60,8 +60,10 @@ jobs:
           script: |
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u erickren2023 --password-stdin
             docker pull ghcr.io/erickren2023/myokr-server:latest
-            docker stop server || true
-            docker rm server || true
+            if docker ps -a --format '{{.Names}}' | grep -q '^server$'; then
+              docker stop server
+              docker rm server
+            fi
             docker run --name server --network nginx-net -d \
               --env-file /opt/myokr/.env \
               ghcr.io/erickren2023/myokr-server:latest
