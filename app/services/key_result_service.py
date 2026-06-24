@@ -67,7 +67,7 @@ class KeyResultService:
             return round(min(kr.current_value / target_val * 100, 100), 1)
         return 0.0
 
-    async def create_key_result(self, user_id: int, objective_id: int, description: str, kr_type: int, target: Optional[dict], milestones_input: Optional[list[dict]]) -> Optional[dict]:
+    async def create_key_result(self, user_id: int, objective_id: int, title: str, description: Optional[str], kr_type: int, target: Optional[dict], milestones_input: Optional[list[dict]]) -> Optional[dict]:
         if not await self._check_objective_ownership(user_id, objective_id):
             return None
         if kr_type == 1:
@@ -76,7 +76,7 @@ class KeyResultService:
             if not isinstance(target.get("value"), (int, float)) or target["value"] <= 0:
                 raise ValueError("目标值必须为正数")
         kr = KeyResult(
-            objective_id=objective_id, description=description, type=kr_type,
+            objective_id=objective_id, title=title, description=description, type=kr_type,
             target=target or {}, status=0,
         )
         self.db.add(kr)
@@ -91,10 +91,12 @@ class KeyResultService:
             await self.db.flush()
         return await self._serialize_kr(kr)
 
-    async def update_key_result(self, user_id: int, kr_id: int, description: Optional[str], target: Optional[dict]) -> Optional[dict]:
+    async def update_key_result(self, user_id: int, kr_id: int, title: Optional[str], description: Optional[str], target: Optional[dict]) -> Optional[dict]:
         kr = await self._check_kr_ownership(user_id, kr_id)
         if not kr:
             return None
+        if title is not None:
+            kr.title = title
         if description is not None:
             kr.description = description
         if target is not None:

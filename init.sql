@@ -63,7 +63,8 @@ CREATE TABLE objective (
 CREATE TABLE key_result (
     id            BIGINT        NOT NULL AUTO_INCREMENT  PRIMARY KEY,
     objective_id  BIGINT        NOT NULL                 COMMENT '归属目标',
-    description   VARCHAR(1000) NOT NULL                 COMMENT 'KR 描述',
+    title         VARCHAR(500)  NOT NULL                 COMMENT 'KR 标题',
+    description   TEXT          NULL                     COMMENT 'KR 详细描述',
     type          TINYINT       NOT NULL                 COMMENT '1=numeric 2=milestone 3=boolean',
     target        JSON          NOT NULL                 COMMENT '目标配置',
     current_value DOUBLE        NULL                     COMMENT '当前进度值 (numeric 型)',

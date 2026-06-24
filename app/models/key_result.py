@@ -12,7 +12,8 @@ class KeyResult(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     objective_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    description: Mapped[str] = mapped_column(String(1000), nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     type: Mapped[int] = mapped_column(SmallInteger, nullable=False, comment="1=numeric 2=milestone 3=boolean")
     target: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     current_value: Mapped[Optional[float]] = mapped_column(nullable=True)
@@ -22,6 +23,7 @@ class KeyResult(Base, TimestampMixin):
     def to_dict(self) -> dict:
         return {
             "id": self.id,
+            "title": self.title,
             "description": self.description,
             "type": self.type,
             "target": self.target,
