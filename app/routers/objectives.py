@@ -31,6 +31,11 @@ class ObjectiveActionRequest(BaseModel):
     id: int
 
 
+class ReorderObjectiveRequest(BaseModel):
+    id: int
+    sort_order: int
+
+
 @router.get("")
 async def list_objectives(cycle_id: str, status: Optional[int] = None, user_id: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     service = ObjectiveService(db)
@@ -52,6 +57,13 @@ async def update_objective(req: UpdateObjectiveRequest, user_id: int = Depends(g
     if not obj:
         raise HTTPException(status_code=404, detail="Objective not found")
     return success(obj)
+
+
+@router.post("/reorder")
+async def reorder_objectives(req: list[ReorderObjectiveRequest], user_id: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    service = ObjectiveService(db)
+    await service.reorder_objectives(user_id, [item.model_dump() for item in req])
+    return success(None)
 
 
 @router.post("/archive")

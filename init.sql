@@ -69,6 +69,7 @@ CREATE TABLE key_result (
     target        JSON          NOT NULL                 COMMENT '目标配置',
     current_value DOUBLE        NULL                     COMMENT '当前进度值 (numeric 型)',
     is_achieved   TINYINT(1)    NOT NULL DEFAULT 0       COMMENT '0=未达成 1=已达成',
+    sort_order    INT           NOT NULL DEFAULT 0       COMMENT '排序优先级，越小越靠前',
     status        TINYINT       NOT NULL DEFAULT 0       COMMENT '0=active 1=archived',
     create_time   DATETIME      NOT NULL DEFAULT NOW(),
     update_time   DATETIME      NOT NULL DEFAULT NOW() ON UPDATE NOW(),
