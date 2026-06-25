@@ -45,7 +45,7 @@ class ObjectiveService:
 
     async def _serialize_objective(self, o: Objective) -> dict:
         kr_result = await self.db.execute(
-            select(KeyResult).where(KeyResult.objective_id == o.id, KeyResult.status == 0)
+            select(KeyResult).where(KeyResult.objective_id == o.id, KeyResult.status == 0).order_by(KeyResult.sort_order, KeyResult.id)
         )
         krs = kr_result.scalars().all()
         kr_list = []
@@ -130,4 +130,11 @@ class ObjectiveService:
         )
         for kr in kr_result.scalars().all():
             kr.status = 0
+        await self.db.flush()
+
+    async def reorder_objectives(self, user_id: int, items: list[dict]) -> None:
+        for item in items:
+            obj = await self.db.get(Objective, item["id"])
+            if obj and obj.user_id == user_id and obj.status == 0:
+                obj.sort_order = item["sort_order"]
         await self.db.flush()

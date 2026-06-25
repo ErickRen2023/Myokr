@@ -19,6 +19,7 @@ class CreateKRRequest(BaseModel):
     type: int
     target: Optional[dict] = None
     milestones: Optional[List[dict]] = None
+    sort_order: Optional[int] = None
 
 
 class UpdateKRRequest(BaseModel):
@@ -26,6 +27,7 @@ class UpdateKRRequest(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     target: Optional[dict] = None
+    sort_order: Optional[int] = None
 
 
 class UpdateProgressRequest(BaseModel):
@@ -43,6 +45,11 @@ class KRActionRequest(BaseModel):
     id: int
 
 
+class ReorderKRRequest(BaseModel):
+    id: int
+    sort_order: int
+
+
 @router.get("")
 async def list_key_results(objective_id: str, user_id: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     service = KeyResultService(db)
@@ -53,7 +60,7 @@ async def list_key_results(objective_id: str, user_id: int = Depends(get_current
 @router.post("/create")
 async def create_key_result(req: CreateKRRequest, user_id: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     service = KeyResultService(db)
-    kr = await service.create_key_result(user_id, req.objective_id, req.title, req.description, req.type, req.target, req.milestones)
+    kr = await service.create_key_result(user_id, req.objective_id, req.title, req.description, req.type, req.target, req.milestones, req.sort_order)
     if not kr:
         raise HTTPException(status_code=404, detail="Objective not found")
     return success(kr)
@@ -62,7 +69,7 @@ async def create_key_result(req: CreateKRRequest, user_id: int = Depends(get_cur
 @router.post("/update")
 async def update_key_result(req: UpdateKRRequest, user_id: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     service = KeyResultService(db)
-    kr = await service.update_key_result(user_id, req.id, req.title, req.description, req.target)
+    kr = await service.update_key_result(user_id, req.id, req.title, req.description, req.target, req.sort_order)
     if not kr:
         raise HTTPException(status_code=404, detail="Key result not found")
     return success(kr)
@@ -84,6 +91,13 @@ async def toggle_achieved(req: ToggleAchievedRequest, user_id: int = Depends(get
     if not kr:
         raise HTTPException(status_code=404, detail="Key result not found")
     return success(kr)
+
+
+@router.post("/reorder")
+async def reorder_key_results(req: list[ReorderKRRequest], user_id: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    service = KeyResultService(db)
+    await service.reorder_key_results(user_id, [item.model_dump() for item in req])
+    return success(None)
 
 
 @router.post("/archive")

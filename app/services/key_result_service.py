@@ -28,7 +28,7 @@ class KeyResultService:
     async def get_key_results(self, user_id: int, objective_id_str: str) -> list[dict]:
         obj_ids = [int(x) for x in objective_id_str.split(",") if x]
         result = await self.db.execute(
-            select(KeyResult).where(KeyResult.objective_id.in_(obj_ids), KeyResult.status == 0)
+            select(KeyResult).where(KeyResult.objective_id.in_(obj_ids), KeyResult.status == 0).order_by(KeyResult.sort_order, KeyResult.id)
         )
         krs = result.scalars().all()
         authorized = []
@@ -67,7 +67,7 @@ class KeyResultService:
             return round(min(kr.current_value / target_val * 100, 100), 1)
         return 0.0
 
-    async def create_key_result(self, user_id: int, objective_id: int, title: str, description: Optional[str], kr_type: int, target: Optional[dict], milestones_input: Optional[list[dict]]) -> Optional[dict]:
+    async def create_key_result(self, user_id: int, objective_id: int, title: str, description: Optional[str], kr_type: int, target: Optional[dict], milestones_input: Optional[list[dict]], sort_order: Optional[int] = None) -> Optional[dict]:
         if not await self._check_objective_ownership(user_id, objective_id):
             return None
         if kr_type == 1:
@@ -75,9 +75,14 @@ class KeyResultService:
                 raise ValueError("目标值与单位不能为空")
             if not isinstance(target.get("value"), (int, float)) or target["value"] <= 0:
                 raise ValueError("目标值必须为正数")
+        if sort_order is None:
+            result = await self.db.execute(
+                select(KeyResult).where(KeyResult.objective_id == objective_id, KeyResult.status == 0)
+            )
+            sort_order = len(result.scalars().all())
         kr = KeyResult(
             objective_id=objective_id, title=title, description=description, type=kr_type,
-            target=target or {}, status=0,
+            target=target or {}, sort_order=sort_order, status=0,
         )
         self.db.add(kr)
         await self.db.flush()
@@ -91,7 +96,7 @@ class KeyResultService:
             await self.db.flush()
         return await self._serialize_kr(kr)
 
-    async def update_key_result(self, user_id: int, kr_id: int, title: Optional[str], description: Optional[str], target: Optional[dict]) -> Optional[dict]:
+    async def update_key_result(self, user_id: int, kr_id: int, title: Optional[str], description: Optional[str], target: Optional[dict], sort_order: Optional[int] = None) -> Optional[dict]:
         kr = await self._check_kr_ownership(user_id, kr_id)
         if not kr:
             return None
@@ -101,8 +106,17 @@ class KeyResultService:
             kr.description = description
         if target is not None:
             kr.target = target
+        if sort_order is not None:
+            kr.sort_order = sort_order
         await self.db.flush()
         return await self._serialize_kr(kr)
+
+    async def reorder_key_results(self, user_id: int, items: list[dict]) -> None:
+        for item in items:
+            kr = await self._check_kr_ownership(user_id, item["id"])
+            if kr:
+                kr.sort_order = item["sort_order"]
+        await self.db.flush()
 
     async def update_progress(self, user_id: int, kr_id: int, value: float, is_achieved: Optional[bool] = None) -> Optional[dict]:
         kr = await self._check_kr_ownership(user_id, kr_id)
