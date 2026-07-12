@@ -106,6 +106,9 @@ class KeyResultService:
             kr.description = description
         if target is not None:
             kr.target = target
+            if kr.type == 1 and kr.current_value is not None:
+                target_val = kr.target.get("value", 0) if kr.target else 0
+                kr.is_achieved = (kr.current_value >= target_val) if target_val > 0 else False
         if sort_order is not None:
             kr.sort_order = sort_order
         await self.db.flush()
@@ -124,11 +127,11 @@ class KeyResultService:
             return None
         if kr.type in (2, 3):
             raise ValueError("Progress update is only supported for numeric key results")
-        is_achieved_val = is_achieved if is_achieved is not None else False
         if kr.type == 1:
             target_val = kr.target.get("value", 0) if kr.target else 0
-            if target_val > 0 and value >= target_val:
-                is_achieved_val = True
+            is_achieved_val = (value >= target_val) if target_val > 0 else False
+        else:
+            is_achieved_val = is_achieved if is_achieved is not None else False
         kr.current_value = value
         kr.is_achieved = is_achieved_val
         record = ProgressRecord(key_result_id=kr_id, value=value, is_achieved=is_achieved_val)
