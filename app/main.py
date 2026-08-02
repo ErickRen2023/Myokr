@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import engine
 from app.models.base import Base
-from app.routers import auth, cycles, dashboard, history, key_results, milestones, objectives, progress, settings
+from app.routers import auth, cycles, dashboard, history, key_results, milestones, objectives, progress
 from app.utils.response import error, CODE_BAD_REQUEST, CODE_INTERNAL_ERROR
 
 # Map HTTP status to app error codes
@@ -38,7 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for router in [auth.router, settings.router, dashboard.router, cycles.router,
+for router in [auth.router, dashboard.router, cycles.router,
                objectives.router, key_results.router, milestones.router,
                history.router, progress.router]:
     app.include_router(router)

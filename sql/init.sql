@@ -13,14 +13,10 @@ USE myokr;
 -- 1. user — 用户表
 -- ============================================================
 CREATE TABLE user (
-    id          BIGINT       NOT NULL AUTO_INCREMENT  PRIMARY KEY,
-    key_hash    VARCHAR(255) NOT NULL                 COMMENT 'bcrypt(cost=12) 哈希后的秘钥',
-    key_prefix  VARCHAR(32)  NOT NULL DEFAULT ''      COMMENT 'SHA256(raw_key)[:16] 用于索引加速登录',
+    id          BIGINT       NOT NULL                 PRIMARY KEY COMMENT 'aSSO user_id',
     create_time DATETIME     NOT NULL DEFAULT NOW()   COMMENT '身份创建时间',
     update_time DATETIME     NOT NULL DEFAULT NOW() ON UPDATE NOW()
-                                                      COMMENT '秘钥最后重置时间',
-
-    INDEX idx_user_key_prefix (key_prefix)
+                                                      COMMENT '最后更新时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
