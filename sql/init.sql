@@ -101,3 +101,20 @@ CREATE TABLE progress_record (
 
     INDEX idx_pr_kr_time (key_result_id, recorded_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 7. cycle_review — 周期阶段复盘
+-- ============================================================
+CREATE TABLE cycle_review (
+    cycle_id    BIGINT       NOT NULL PRIMARY KEY COMMENT '所属周期；每个周期一份复盘',
+    user_id     BIGINT       NOT NULL            COMMENT '归属用户',
+    summary     TEXT         NOT NULL            COMMENT '阶段结论',
+    highlights  TEXT         NOT NULL            COMMENT '关键进展',
+    blockers    TEXT         NOT NULL            COMMENT '未达成项与阻碍',
+    learnings   TEXT         NOT NULL            COMMENT '经验与反思',
+    next_steps  TEXT         NOT NULL            COMMENT '下一阶段行动',
+    create_time DATETIME     NOT NULL DEFAULT NOW(),
+    update_time DATETIME     NOT NULL DEFAULT NOW() ON UPDATE NOW(),
+
+    INDEX idx_cycle_review_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
