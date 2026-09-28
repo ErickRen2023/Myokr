@@ -41,11 +41,14 @@ class ObjectiveService:
             select(Objective).where(and_(*conditions)).order_by(Objective.sort_order, Objective.id)
         )
         objectives = result.scalars().all()
-        return [await self._serialize_objective(o) for o in objectives]
+        return [await self._serialize_objective(o, key_result_status=status) for o in objectives]
 
-    async def _serialize_objective(self, o: Objective) -> dict:
+    async def _serialize_objective(self, o: Objective, key_result_status: Optional[int] = 0) -> dict:
+        kr_conditions = [KeyResult.objective_id == o.id]
+        if key_result_status is not None:
+            kr_conditions.append(KeyResult.status == key_result_status)
         kr_result = await self.db.execute(
-            select(KeyResult).where(KeyResult.objective_id == o.id, KeyResult.status == 0).order_by(KeyResult.sort_order, KeyResult.id)
+            select(KeyResult).where(and_(*kr_conditions)).order_by(KeyResult.sort_order, KeyResult.id)
         )
         krs = kr_result.scalars().all()
         kr_list = []

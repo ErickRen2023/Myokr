@@ -29,11 +29,13 @@ class SsoService:
     @staticmethod
     def create_authorization() -> tuple[str, str]:
         SsoService.ensure_configured()
+        # PKCE
         verifier = secrets.token_urlsafe(64)
-        nonce = secrets.token_urlsafe(32)
         challenge = base64.urlsafe_b64encode(
             hashlib.sha256(verifier.encode()).digest()
         ).rstrip(b"=").decode()
+        # CSRF 保护
+        nonce = secrets.token_urlsafe(32)
         state = jwt.encode(
             {
                 "nonce": nonce,

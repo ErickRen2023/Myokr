@@ -44,6 +44,7 @@ class DashboardService:
                 "total_objectives": len(objectives),
                 "completed_objectives": sum(1 for o in objectives if o["progress"] >= 100),
                 "in_progress_objectives": sum(1 for o in objectives if o["progress"] < 100),
+                "completed_key_results": sum(1 for kr in all_krs if kr["progress"] >= 100),
                 "total_key_results": total_krs,
                 "average_kr_progress": avg_progress,
             },

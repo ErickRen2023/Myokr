@@ -6,6 +6,7 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.cycle import Cycle
+from app.models.cycle_review import CycleReview
 from app.models.key_result import KeyResult
 from app.models.objective import Objective
 
@@ -149,6 +150,51 @@ class CycleService:
             for kr in kr_result.scalars().all():
                 kr.status = 1
         await self.db.flush()
+
+    async def get_cycle_review(self, user_id: int, cycle_id: int) -> Optional[dict]:
+        result = await self.db.execute(
+            select(CycleReview).where(
+                CycleReview.cycle_id == cycle_id,
+                CycleReview.user_id == user_id,
+            )
+        )
+        review = result.scalar_one_or_none()
+        return review.to_dict() if review else None
+
+    async def save_cycle_review(
+        self,
+        user_id: int,
+        cycle_id: int,
+        review_data: dict,
+    ) -> Optional[dict]:
+        cycle = await self.db.get(Cycle, cycle_id)
+        if not cycle or cycle.user_id != user_id:
+            return None
+        if cycle.status != 0:
+            raise ValueError("周期已归档，无法修改复盘")
+
+        review = await self.db.get(CycleReview, cycle_id)
+        if review is None:
+            review = CycleReview(cycle_id=cycle_id, user_id=user_id, **review_data)
+            self.db.add(review)
+        else:
+            for field, value in review_data.items():
+                setattr(review, field, value)
+
+        await self.db.flush()
+        return review.to_dict()
+
+    async def review_and_archive_cycle(
+        self,
+        user_id: int,
+        cycle_id: int,
+        review_data: dict,
+    ) -> Optional[dict]:
+        review = await self.save_cycle_review(user_id, cycle_id, review_data)
+        if review is None:
+            return None
+        await self.archive_cycle(user_id, cycle_id)
+        return review
 
     async def reactivate_cycle(self, user_id: int, cycle_id: int) -> None:
         cycle = await self.db.get(Cycle, cycle_id)

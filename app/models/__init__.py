@@ -5,6 +5,7 @@ from app.models.objective import Objective
 from app.models.key_result import KeyResult
 from app.models.milestone import Milestone
 from app.models.progress_record import ProgressRecord
+from app.models.cycle_review import CycleReview
 
 __all__ = [
     "Base",
@@ -15,4 +16,5 @@ __all__ = [
     "KeyResult",
     "Milestone",
     "ProgressRecord",
+    "CycleReview",
 ]
