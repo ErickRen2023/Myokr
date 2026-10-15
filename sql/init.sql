@@ -97,6 +97,7 @@ CREATE TABLE progress_record (
     key_result_id BIGINT         NOT NULL                 COMMENT '归属 KR',
     value         DECIMAL(10,2)  NOT NULL                 COMMENT '该次更新的进度值',
     is_achieved   TINYINT(1)     NOT NULL DEFAULT 0       COMMENT '该次更新是否代表达成目标',
+    target_snapshot JSON        NULL                    COMMENT '记录时的目标配置；旧记录为空',
     recorded_at   DATETIME       NOT NULL DEFAULT NOW()   COMMENT '记录时间',
 
     INDEX idx_pr_kr_time (key_result_id, recorded_at)

@@ -22,7 +22,7 @@ class ProgressService:
         result = await self.db.execute(
             select(ProgressRecord)
             .where(ProgressRecord.key_result_id == kr_id)
-            .order_by(ProgressRecord.recorded_at.desc())
+            .order_by(ProgressRecord.recorded_at.desc(), ProgressRecord.id.desc())
             .limit(limit)
         )
         return [r.to_dict() for r in result.scalars().all()]

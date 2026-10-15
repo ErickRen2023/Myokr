@@ -42,9 +42,9 @@ class DashboardService:
             "cycles": cycles,
             "summary": {
                 "total_objectives": len(objectives),
-                "completed_objectives": sum(1 for o in objectives if o["progress"] >= 100),
-                "in_progress_objectives": sum(1 for o in objectives if o["progress"] < 100),
-                "completed_key_results": sum(1 for kr in all_krs if kr["progress"] >= 100),
+                "completed_objectives": sum(1 for o in objectives if o["key_results"] and all(kr["is_achieved"] for kr in o["key_results"])),
+                "in_progress_objectives": sum(1 for o in objectives if not o["key_results"] or not all(kr["is_achieved"] for kr in o["key_results"])),
+                "completed_key_results": sum(1 for kr in all_krs if kr["is_achieved"]),
                 "total_key_results": total_krs,
                 "average_kr_progress": avg_progress,
             },
