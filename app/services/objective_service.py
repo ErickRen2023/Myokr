@@ -6,22 +6,11 @@ from app.models.cycle import Cycle
 from app.models.key_result import KeyResult
 from app.models.milestone import Milestone
 from app.models.objective import Objective
+from app.services.kr_evaluation import evaluate_kr
 
 
 def _kr_progress(kr: KeyResult, milestones: Optional[list[Milestone]] = None) -> float:
-    if kr.type == 3:
-        return 100.0 if kr.is_achieved else 0.0
-    if kr.type == 2:
-        if milestones is None:
-            return 0.0
-        done = sum(1 for m in milestones if m.completed)
-        return round(done / len(milestones) * 100) if milestones else 0
-    if kr.type == 1 and kr.current_value is not None:
-        target_val = kr.target.get("value", 1) if kr.target else 1
-        if target_val == 0:
-            target_val = 1
-        return round(min(kr.current_value / target_val * 100, 100), 1)
-    return 0.0
+    return evaluate_kr(kr, milestones)["progress"]
 
 
 class ObjectiveService:
@@ -74,9 +63,8 @@ class ObjectiveService:
             )
             ms_list = ms_result.scalars().all()
             milestones = [m.to_dict() for m in ms_list]
-        progress = _kr_progress(kr, ms_list if kr.type == 2 else None)
         d = kr.to_dict()
-        d["progress"] = progress
+        d.update(evaluate_kr(kr, ms_list if kr.type == 2 else None))
         d["milestones"] = milestones
         return d
 
