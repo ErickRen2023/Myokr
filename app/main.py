@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import engine
 from app.models.base import Base
+from app.migrate import migrate_schema
 from app.routers import auth, cycles, dashboard, history, key_results, milestones, objectives, progress
 from app.utils.response import error, CODE_BAD_REQUEST, CODE_INTERNAL_ERROR
 
@@ -24,6 +25,7 @@ _HTTP_TO_APP_CODE = {
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await migrate_schema(conn)
     yield
     await engine.dispose()
 
